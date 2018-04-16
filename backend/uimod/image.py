@@ -1,4 +1,5 @@
-from PIL import Image, ImageTk
+import PIL
+from PIL import ImageTk
 from tkinter import *
 
 class PreviewImage(Frame):
@@ -13,6 +14,14 @@ class PreviewImage(Frame):
 
         self.__create_widgets()
         self.__place_widgets()
+
+    def load(self, filename):
+        image = PIL.Image.open(filename)
+        image = type(self).zoom_image(image)
+
+        image = ImageTk.PhotoImage(image)
+        self.__image.configure(image=image, width=type(self).IMG_WIDTH, height=type(self).IMG_HEIGHT)
+        self.__image.image = image
 
     def __create_widgets(self):
         img = PhotoImage(width=type(self).IMG_WIDTH, height=type(self).IMG_HEIGHT)
@@ -36,6 +45,6 @@ class PreviewImage(Frame):
         else:
             t_width = int(t_height *ratio)
 
-        image = image.resize((t_width, t_height), Image.ANTIALIAS)
+        image = image.resize((t_width, t_height), PIL.Image.ANTIALIAS)
 
         return image

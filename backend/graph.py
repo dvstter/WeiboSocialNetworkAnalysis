@@ -1,5 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import matplotlib
+import random
 
 class Person:
     def __init__(self, name, intro = None, blogs = None, follows = None, fans = None):
@@ -32,7 +34,9 @@ class RelationGraph:
             else:
                 self.__graph.add_node(each)
 
-    def add_relation(self, follower, be_followed, relation):
+    def add_relation(self, follower, be_followed, relation=None):
+        if not relation:
+            relation = random.randint(0, 20)
         if type(be_followed) != Person or type(follower) != Person:
             raise ValueError
         else:
@@ -43,12 +47,13 @@ class RelationGraph:
         for each in self.__graph.nodes:
             labels[each] = each.name
 
-        nx.draw(self.__graph, with_labels=True, labels=labels)
+        nx.draw(self.__graph, font_family="SimHei", with_labels=True, labels=labels)
         if filename:
             plt.savefig(filename)
         else:
             plt.show()
 
+# test code
 if __name__ == "__main__":
     y = Person("Yang")
     k = Person("Kai")
