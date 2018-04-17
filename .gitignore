@@ -1,5 +1,5 @@
 .idea/
-*.txt
+debug*.txt
 resource/
 
 # Byte-compiled / optimized / DLL files
