@@ -1,6 +1,6 @@
 .idea/
 debug*.txt
-resource/
+resource/relation.jpg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
