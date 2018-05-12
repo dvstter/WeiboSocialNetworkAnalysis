@@ -18,6 +18,18 @@ class Database:
         except redis.exceptions.ConnectionError:
             print("Exception: Too many connection request, cannot get the connection.")
             self.conn = None
+
+    """
+    添加、获取所有的微博id
+    
+    :param weibo_id: 微博的id
+    """
+    def add_weibo_id(self, weibo_id):
+        return self.__common_add("weiboids", weibo_id)
+
+    def get_weibo_ids(self):
+        return self.__common_fetch_all("weiboids")
+
     """
     添加转发、评论、点亮的昵称
     
@@ -96,6 +108,77 @@ class Database:
         return int(self.__common_get("blogs:"+str(person_id)))
 
     """
+    计算、获取关注的人的转发、评论、点亮率
+    """
+    def process_ratios(self):
+        # get all the data needed
+        reposts = {}
+        comments = {}
+        stars = {}
+        users = {}
+
+        r_ratio = {}
+        c_ratio = {}
+        s_ratio = {}
+
+        for rid in self.get_all_repost_ids():
+            rnames = self.get_repost_names(rid)
+            reposts[rid] = rnames
+
+        for cid in self.get_all_comment_ids():
+            cnames = self.get_comment_names(cid)
+            comments[cid] = cnames
+
+        for sid in self.get_all_star_ids():
+            snames = self.get_star_names(sid)
+            stars[sid] = snames
+
+        for uid in self.get_all_user_ids():
+            uname = self.get_name(uid)
+            users[uid] = uname
+
+        # process the data
+        for uid, uname in users.items():
+            r_ratio[uid] = 0
+            for _, rnames in reposts.items():
+                if uname in rnames:
+                    r_ratio[uid] += 1
+
+            s_ratio[uid] = 0
+            for _, snames in stars.items():
+                if uname in snames:
+                    s_ratio[uid] += 1
+
+            c_ratio[uid] = 0
+            for _, cnames in comments.items():
+                if uname in cnames:
+                    c_ratio[uid] += 1
+
+        for p, cnt in r_ratio.items():
+            r_ratio[p] = float(float(cnt) / len(reposts))
+        for p, cnt in s_ratio.items():
+            s_ratio[p] = float(float(cnt) / len(stars))
+        for p, cnt in c_ratio.items():
+            c_ratio[p] = float(float(cnt) / len(comments))
+
+        # write to the database
+        for p, r in r_ratio.items():
+            self.__common_set("rratio:"+p, r)
+        for p, r in s_ratio.items():
+            self.__common_set("sratio:"+p, r)
+        for p, r in c_ratio.items():
+            self.__common_set("cratio:"+p, r)
+
+    def get_star_ratio(self, person_id):
+        return self.__common_get("sratio:"+person_id)
+
+    def get_comment_ratio(self, person_id):
+        return self.__common_get("cratio:"+person_id)
+
+    def get_repost_ratio(self, person_id):
+        return self.__common_get("rratio:"+person_id)
+
+    """
     获取所有关注的人的id
     """
     def get_all_user_ids(self):
@@ -133,6 +216,11 @@ class Database:
 
         file.close()
 
+    """
+        保存、读取所有关注用户的信息
+
+        :param filename: 文件名
+    """
     def save_users_info(self, filename="resource/users.txt"):
         file = open(filename, "w", encoding="utf-8")
         for each_id in self.get_all_user_ids():
@@ -158,6 +246,27 @@ class Database:
             self.add_fans(id_, fans)
 
         file.close()
+
+    """
+        保存、读取所有微博的id信息
+
+        :param filename: 文件名
+    """
+    def save_blog_ids(self, filename="resource/blog_ids.txt"):
+        file = open(filename, "w", encoding="utf-8")
+        for each in self.get_weibo_ids():
+            file.write("{}\n".format(each))
+        file.close()
+
+    def restore_blog_ids(self, filename="resource/blog_ids.txt"):
+        file = open(filename, "r", encoding="utf-8")
+        for eachline in file.readlines():
+            id_ = eachline.strip("\n")
+            if len(id_) < 2:
+                continue
+            self.add_weibo_id(eachline.strip("\n"))
+        file.close()
+
 
     def __common_set(self, key, value):
         if not self.conn:
