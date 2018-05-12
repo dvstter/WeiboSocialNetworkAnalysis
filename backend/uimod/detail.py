@@ -44,10 +44,16 @@ class DetailTable(Frame):
         self.__table.heading("f", text="博客数")
         self.__table.heading("g", text="点赞率")
         self.__table.heading("h", text="评论率")
-        self.__table.heading("i", text="关系指数")
+        self.__table.heading("i", text="转发率")
 
-    def add_related_person(self, id_, name, followers, attentions, blogs, star_ratio, comment_ratio, relation):
-        self.__data += [(id_, name, followers, attentions, blogs, star_ratio, comment_ratio, relation)]
+    def add_related_person(self, id_, name, followers, attentions, blogs, star_ratio, comment_ratio, repost_ratio):
+        self.__data += [(id_, name, followers, attentions, blogs, star_ratio, comment_ratio, repost_ratio)]
+
+    def sort_data(self, key_value, reverse):
+        self.__data = sorted(self.__data, key=key_value, reverse=reverse)
+
+    def get_data(self):
+        return self.__data
 
     def update_table(self):
         self.__init_table()
