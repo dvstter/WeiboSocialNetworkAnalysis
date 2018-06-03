@@ -13,6 +13,7 @@ class DetailTable(Frame):
         #self.__xscroller = None
         self.__table = None
         self.__data = []
+        self.__relevances = []
 
         self.__create_widgets()
         self.__place_widgets()
@@ -21,9 +22,9 @@ class DetailTable(Frame):
         if self.__table is not None:
             self.__table.grid_forget()
 
-        self.__table = Treeview(self, height=type(self).TABLE_HEIGHT, show="headings", column=("a", "b", "c", "d", "e", "f", "g", "h", "i"), selectmode="none")
+        self.__table = Treeview(self, height=type(self).TABLE_HEIGHT, show="headings", column=("a", "b", "c", "d", "e", "f", "g", "h", "i", "j"), selectmode="none")
 
-        for x in ["a", "b", "c", "d", "e", "f", "g", "h", "i"]:
+        for x in ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]:
             self.__table.column(x, anchor="center")
 
         self.__table.column("a", width=20, stretch=False)
@@ -35,6 +36,7 @@ class DetailTable(Frame):
         self.__table.column("g", width=80, stretch=False)
         self.__table.column("h", width=80, stretch=False)
         self.__table.column("i", width=80, stretch=False)
+        self.__table.column("j", width=80, stretch=False)
 
         self.__table.heading("a", text="#")
         self.__table.heading("b", text="用户身份号")
@@ -45,6 +47,7 @@ class DetailTable(Frame):
         self.__table.heading("g", text="点赞率")
         self.__table.heading("h", text="评论率")
         self.__table.heading("i", text="转发率")
+        self.__table.heading("j", text="关联度")
 
     def add_related_person(self, id_, name, followers, attentions, blogs, star_ratio, comment_ratio, repost_ratio):
         self.__data += [(id_, name, followers, attentions, blogs, star_ratio, comment_ratio, repost_ratio)]
@@ -55,8 +58,29 @@ class DetailTable(Frame):
     def get_data(self):
         return self.__data
 
+    def calculate_relevance(self):
+        self.__relevances = ["2" for _ in range(len(self.__data))]
+
+        tmp = []
+        for _, _, _, _, _, sr, cr, rr in self.__data:
+            tmp.append(float(sr[:-1]) + float(cr[:-1])+float(rr[:-1]))
+
+        biggest = tmp[0]
+        smallest = tmp[-1]
+
+        for idx in range(len(tmp)):
+            if biggest*0.4 <= tmp[idx]:
+                self.__relevances[idx] = "1"
+
+
+        for idx in range(len(tmp)):
+            if smallest * 1.5 >= tmp[idx]:
+                self.__relevances[idx] = "3"
+
     def update_table(self):
         self.__init_table()
+
+        self.calculate_relevance()
 
         num_rows = len(self.__data)
         for idx in range(num_rows):
@@ -69,7 +93,8 @@ class DetailTable(Frame):
                                         self.__data[idx][4],
                                         self.__data[idx][5],
                                         self.__data[idx][6],
-                                        self.__data[idx][7]))
+                                        self.__data[idx][7],
+                                        self.__relevances[idx]))
 
         self.__place_widgets()
 
